@@ -1,0 +1,61 @@
+﻿.table tbody tr.active td,
+.table tbody tr.active th,
+.table tbody tr.active:hover td,
+.table tbody tr.active:hover th,
+.table tbody tr.active:focus td,
+.table tbody tr.active:focus th {
+    background-color: #0088cc;
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+table th {
+    text-align: center;
+    white-space: nowrap;
+}
+
+table td { word-break: break-all; }
+
+@media only screen and (max-width: 480px) {
+    table { /* Force table to not be like tables anymore */display: block;
+        /* Hide table headers (but not display: none;, for accessibility) */ }
+
+    table thead,
+    table tbody,
+    table th,
+    table td,
+    table tr { display: block; }
+
+    table thead tr {
+        left: -9999px;
+        position: absolute;
+        top: -9999px;
+    }
+
+    table tr { border: 1px solid #ccc; }
+
+    table td {
+        /* Behave  like a "row" */
+        border: none;
+        border-bottom: 1px solid #eee;
+        padding-left: 50%;
+        position: relative;
+        text-align: left;
+        white-space: normal;
+    }
+
+    table td:before {
+        /* Label the data */
+        content: attr(data-title);
+        font-weight: bold;
+        left: 6px;
+        padding-right: 10px;
+        /* Now like a table header */
+        position: absolute;
+        text-align: left;
+        /* Top/left values mimic padding */
+        top: 6px;
+        white-space: nowrap;
+        width: 45%;
+    }
+}
