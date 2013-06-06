@@ -22,14 +22,23 @@
         }
         var $check = $(".qtable-select-all", this.$table);
         if ($check.length) {
-            self.$table.on("change", ".qtable-select-all", function () {
-                $(".qtable-select-row", self.$table).prop("checked", $(this).prop("checked")).trigger("change");
+            self.$table.on("click", ".qtable-select-all", function () {
+                var b = $(this).prop("checked");
+                if (b) {
+                    $.each(self.$table.find("tr:not(.active)"), function () {
+                        $(this).find("td:eq(0)").click();
+                    });
+                } else {
+                    $.each(self.$table.find("tr.active"), function () {
+                        $(this).find("td:eq(0)").click();
+                    });
+                }
+
             });
-            self.$table.on("change", ".qtable-select-row", function () {
-                $(this).closest("tr").toggleClass("active", $(this).prop("checked"));
-            });
-            self.$table.on("click", "tr td", function() {
-                $(this).closest("tr").find(".qtable-select-row").click();
+            self.$table.on("click", "tr td", function () {
+                var $tr = $(this).closest("tr"), b = $tr.hasClass("active"), $c = $(this).closest("tr").find("td:eq(0) .qtable-select-row");
+                $c.prop("checked", !b);
+                $tr.toggleClass("active", !b);
             });
         }
         self.reload.call(self);
@@ -51,7 +60,7 @@
                     pagesize: self.options.pager.pagesize
                 };
             if (url) {
-                $.post(url, data).done(function(json) {
+                $.post(url, data).done(function (json) {
                     var tabledata = json.data,
                         pager = json.pager;
                     self.options.data = tabledata;
@@ -80,8 +89,8 @@
             return;
         }
         if (pageindex > 3) {//首页上一页按钮
-            arr.push('<li><a href="#0"><i class="icon-double-angle-left" title="首页"></i></a></li>');
-            arr.push('<li><a href="#' + (pageindex - 1) + '"><i class="icon-angle-left" title="上一页"></i></a></li>');
+            arr.push('<li><a href="#0" title="首页"><i class="icon-double-angle-left"></i></a></li>');
+            arr.push('<li><a href="#' + (pageindex - 1) + '" title="上一页"><i class="icon-angle-left"></i></a></li>');
         }
         //左边
         for (var i = pagewidth; i > 0; i--) {
@@ -101,8 +110,8 @@
             }
         }
         if (pageindex < lastindex - 3) {//需要下一页末页按钮
-            arr.push('<li><a href="#' + (pageindex + 1) + '"><i class="icon-angle-right" title="下一页"></i></a></li>');
-            arr.push('<li><a href="#' + lastindex + '"><i class="icon-double-angle-right" title="末页"></i></a></l');
+            arr.push('<li><a href="#' + (pageindex + 1) + '" title="下一页"><i class="icon-angle-right"></i></a></li>');
+            arr.push('<li><a href="#' + lastindex + '" title="末页"><i class="icon-double-angle-right"></i></a></l');
         }
         $(".qpagination", $pager).html(function () {
             return "<ul>" + arr.join("") + "</ul>";
