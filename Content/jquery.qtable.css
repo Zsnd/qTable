@@ -1,4 +1,13 @@
-﻿.table tbody tr.active td,
+﻿.qpager, .qtmpl {
+    
+}
+.qpagination {
+    margin: 0;
+}
+.table tr td {
+    cursor: pointer;
+}
+.table tbody tr.active td,
 .table tbody tr.active th,
 .table tbody tr.active:hover td,
 .table tbody tr.active:hover th,

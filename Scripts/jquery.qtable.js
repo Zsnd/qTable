@@ -1,31 +1,114 @@
 ﻿(function () {
     "use strict";
     var QTable = function (div, options) {
+        var self = this;
         this.$div = $(div);
         this.options = options;
-        this.$table = this.$div.find("");
-        this.$tmpl = this.$div.find("");
-        this.$pager = this.$div.find("");
-        this.$toolbar = this.$div.find("");
+        this.$table = this.$div.find(".table");
+        this.$tmpl = this.$div.find(options.tmplclass);
+        this.$pager = this.$div.find(options.pagerclass);
+        if (this.$pager.length) {
+            self.$pager.on("click", ".pagination active a", function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            });
+            self.$pager.on("click", ".pagination a", function (e) {
+                e.preventDefault();
+                var pageindex = $(this).attr("href").replace(/#/g, "");
+                self.options.pager.pageindex = pageindex;
+                self.reload.call(self);
+            });
 
+        }
+        var $check = $(".qtable-select-all", this.$table);
+        if ($check.length) {
+            self.$table.on("change", ".qtable-select-all", function () {
+                $(".qtable-select-row", self.$table).prop("checked", $(this).prop("checked")).trigger("change");
+            });
+            self.$table.on("change", ".qtable-select-row", function () {
+                $(this).closest("tr").toggleClass("active", $(this).prop("checked"));
+            });
+            self.$table.on("click", "tr td", function() {
+                $(this).closest("tr").find(".qtable-select-row").click();
+            });
+        }
+        self.reload.call(self);
     };
 
     QTable.prototype = {
         constructor: QTable,
 
         init: function () {
-
+            var $c = $(this);
         },
 
         reload: function () {
+            var self = this, url = self.options.url,
+                data = {
+                    sidx: self.options.sidx,
+                    sort: self.options.sort,
+                    pageindex: self.options.pager.pageindex,
+                    pagesize: self.options.pager.pagesize
+                };
+            if (url) {
+                $.post(url, data).done(function(json) {
+                    var tabledata = json.data,
+                        pager = json.pager;
+                    self.options.data = tabledata;
+                    self.options.pager = pager;
 
+                    rendertable.call(self);
+                    renderpager.call(self);
+                });
+            }
         }
-
-
     };
 
     //private
+    var rendertable = function () {
+        var self = this, $table = self.$table, $tmpl = self.$tmpl, data = self.options.data;
+        $("tbody", $table).html($tmpl.render(data));
+    };
 
+    var renderpager = function () {
+        var self = this, $pager = self.$pager, pager = self.options.pager,
+            pageindex = pager.pageindex, pagesize = pager.pagesize, total = pager.total,
+            lastindex = Math.ceil(total / pagesize) - 1, pagewidth = 3, arr = [];
+        if (total <= pagesize) {//不需要分页
+            $(".pagination-info", $pager).val("合计：" + total + "项");
+            $(".qpagination", $pager).html("");
+            return;
+        }
+        if (pageindex > 3) {//首页上一页按钮
+            arr.push('<li><a href="#0"><i class="icon-double-angle-left" title="首页"></i></a></li>');
+            arr.push('<li><a href="#' + (pageindex - 1) + '"><i class="icon-angle-left" title="上一页"></i></a></li>');
+        }
+        //左边
+        for (var i = pagewidth; i > 0; i--) {
+            var index = pageindex - i;
+            if (index >= 0) {
+                arr.push('<li><a href="#' + index + '">' + (index + 1) + '</a></li>');
+            }
+        }
+        //当前页按钮
+        arr.push('<li class="active"><a href="#' + pageindex + '">' + (pageindex + 1) + '</a></li>');
+
+        //右边
+        for (var i1 = 0; i1 < pagewidth; i1++) {
+            var index1 = pageindex + i1 + 1;
+            if (index1 <= lastindex) {
+                arr.push('<li><a href="#' + index1 + '">' + (index1 + 1) + '</a></li>');
+            }
+        }
+        if (pageindex < lastindex - 3) {//需要下一页末页按钮
+            arr.push('<li><a href="#' + (pageindex + 1) + '"><i class="icon-angle-right" title="下一页"></i></a></li>');
+            arr.push('<li><a href="#' + lastindex + '"><i class="icon-double-angle-right" title="末页"></i></a></l');
+        }
+        $(".qpagination", $pager).html(function () {
+            return "<ul>" + arr.join("") + "</ul>";
+        });
+        $(".pagination-info", $pager).text("当前位置：" + (pageindex + 1) + "/" + (lastindex + 1) + "页 合计：" + total + "项");
+    };
 
     //plugin
     $.fn.qtable = function (option) {
@@ -39,6 +122,16 @@
     };
 
     $.fn.qtable.defaults = {
+        url: undefined,
+        sidx: undefined,
+        sort: undefined,
+        pager: {
+            pagesize: 20,
+            pageindex: 0,
+            total: undefined
+        },
+        pagerclass: ".qpager",
+        tmplclass: ".qtmpl"
     };
 
     $.fn.qtable.Constructor = QTable;
@@ -47,8 +140,4 @@
         $.fn.qtable = old;
         return this;
     };
-
-    $(function () {
-
-    });
 })(jQuery);
