@@ -14,7 +14,7 @@ namespace qTable.Controllers
 
         static HomeController()
         {
-            for (int i = 1; i < 501; i++)
+            for (int i = 1; i < 11; i++)
             {
                 var order = new Order
                     {

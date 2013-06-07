@@ -33,7 +33,6 @@
                         $(this).find("td:eq(0)").click();
                     });
                 }
-
             });
             self.$table.on("click", "tr td", function () {
                 var $tr = $(this).closest("tr"), b = $tr.hasClass("active"), $c = $(this).closest("tr").find("td:eq(0) .qtable-select-row");
@@ -48,7 +47,7 @@
         constructor: QTable,
 
         init: function () {
-            var $c = $(this);
+
         },
 
         reload: function () {
@@ -60,17 +59,71 @@
                     pagesize: self.options.pager.pagesize
                 };
             if (url) {
+                self.loading.call(self);
                 $.post(url, data).done(function (json) {
                     var tabledata = json.data,
                         pager = json.pager;
-                    self.options.data = tabledata;
-                    self.options.pager = pager;
+                    if (tabledata && tabledata.length) {
+                        self.options.data = tabledata;
+                        self.options.pager = pager;
 
-                    rendertable.call(self);
-                    renderpager.call(self);
+                        rendertable.call(self);
+                        renderpager.call(self);
+                        self.$table.show();
+                        self.$pager.show();
+                        $("#nodata-alert", self.$div).remove();
+                    } else {
+                        self.$table.hide();
+                        self.$pager.hide();
+                        if ($("#nodata-alert", self.$div).length == 0) {
+                            self.$div.prepend('<div class="alert alert-error" id="nodata-alert">没有查到任何数据！</div>');
+                        }
+                    }
+                }).then(function () {
+                    setTimeout(function() {
+                        self.loading.call(self);
+                    }, 200);
                 });
             }
-        }
+        },
+        removeLoading: function () {
+            this.$loading.remove();
+            this.$loading = null;
+            this.isLoading = false;
+        },
+        
+        loading: function (callback) {
+            callback = callback || function () { };
+
+            var animate = this.$div.find(".mask-needed").hasClass('fade') ? 'fade' : '';
+
+            if (!this.isLoading) {
+                var doAnimate = $.support.transition && animate;
+
+                this.$loading = $('<div class="loading-mask ' + animate + '">')
+                    .append(this.options.spinner)
+                    .appendTo(this.$div.find(".mask-needed"));
+
+                if (doAnimate) this.$loading[0].offsetWidth; // force reflow
+
+                this.$loading.addClass('in');
+
+                this.isLoading = true;
+
+                doAnimate ? this.$loading.one($.support.transition.end, callback) : callback();
+
+            } else if (this.isLoading && this.$loading) {
+                this.$loading.removeClass('in');
+
+                var that = this;
+                $.support.transition && this.$div.find(".mask-needed").hasClass('fade') ? this.$loading.one($.support.transition.end, function () {
+                    that.removeLoading()
+                }) : that.removeLoading();
+
+            } else if (callback) {
+                callback(this.isLoading);
+            }
+        },
     };
 
     //private
@@ -84,7 +137,7 @@
             pageindex = pager.pageindex, pagesize = pager.pagesize, total = pager.total,
             lastindex = Math.ceil(total / pagesize) - 1, pagewidth = 3, arr = [];
         if (total <= pagesize) {//不需要分页
-            $(".pagination-info", $pager).val("合计：" + total + "项");
+            $(".pagination-info", $pager).text("合计：" + total + "项");
             $(".qpagination", $pager).html("");
             return;
         }
@@ -133,14 +186,15 @@
     $.fn.qtable.defaults = {
         url: undefined,
         sidx: undefined,
-        sort: undefined,
+        sort: "desc",
         pager: {
             pagesize: 20,
             pageindex: 0,
             total: undefined
         },
         pagerclass: ".qpager",
-        tmplclass: ".qtmpl"
+        tmplclass: ".qtmpl",
+        spinner: '<div class="loading-spinner" style="width: 200px; margin-left: -100px;"><div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div></div>'
     };
 
     $.fn.qtable.Constructor = QTable;
