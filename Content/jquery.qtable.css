@@ -36,6 +36,31 @@
     text-align: center;
     white-space: nowrap;
 }
+.table th.sortable {
+    cursor: pointer;
+}
+
+.table th.sortable:after {
+    float: right;
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    display: inline-block;
+    opacity: .3;
+    content: "\f0dc";
+}
+
+.table th.sortable:hover:after {
+    opacity: .7;
+}
+
+.table th.sortable.sort-up:after {
+    content: "\f0de";
+}
+
+.table th.sortable.sort-down:after {
+    content: "\f0dd";
+}
 
 .table td {
     vertical-align: middle;
