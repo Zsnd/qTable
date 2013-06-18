@@ -1,6 +1,6 @@
-﻿(function() {
+﻿(function () {
     "use strict";
-    var QTable = function(div, options) {
+    var QTable = function (div, options) {
         var self = this, $div = self.$div = $(div),
             $table = self.$table = $(".table", $div),
             $tmpl = self.$tmpl = $(options.tmplclass, $div),
@@ -13,11 +13,11 @@
         if (pageable) {
             self.$pager = $pager;
 
-            $pager.on("click", ".pagination active a", function(e) {
+            $pager.on("click", ".pagination active a", function (e) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
             });
-            $pager.on("click", ".pagination a", function(e) {
+            $pager.on("click", ".pagination a", function (e) {
                 e.preventDefault();
                 options.pager.pageindex = $(this).attr("href").replace(/#/g, "");
                 self.reload.call(self);
@@ -27,19 +27,19 @@
         }
 
         if (check) {
-            $table.on("click", ".qtable-select-all", function() {
+            $table.on("click", ".qtable-select-all", function () {
                 var b = $(this).prop("checked");
                 if (b) {
-                    $.each($table.find("tr:not(.active)"), function() {
+                    $.each($table.find("tr:not(.active)"), function () {
                         $(this).find("td:eq(0)").click();
                     });
                 } else {
-                    $.each($table.find("tr.active"), function() {
+                    $.each($table.find("tr.active"), function () {
                         $(this).find("td:eq(0)").click();
                     });
                 }
             });
-            $table.on("click", "tr td", function() {
+            $table.on("click", "tr td", function () {
                 var $tr = $(this).closest("tr"), b = $tr.hasClass("active"), $c = $(this).closest("tr").find("td:eq(0) .qtable-select-row");
                 $c.prop("checked", !b);
                 $tr.toggleClass("active", !b);
@@ -51,11 +51,11 @@
     QTable.prototype = {
         constructor: QTable,
 
-        init: function() {
+        init: function () {
 
         },
 
-        reload: function() {
+        reload: function () {
             var self = this, options = self.options, url = options.url,
                 $div = self.$div, $table = self.$table, $pager = self.$pager,
                 pageable = self.pageable, data = getdata.call(self),
@@ -64,42 +64,43 @@
             if (url) {
                 self.loading.call(self);
 
-                def.done(function(json) {
+                def.done(function (json) {
                     var tabledata = json.data;
                     if (tabledata && tabledata.length) {
                         options.data = tabledata;
+                        pageable && (options.pager = json.pager);
+
+                        var e = $.Event('show');
+                        $div.trigger(e);
+
                         rendertable.call(self);
+                        pageable && renderpager.call(self);
                         $table.show();
-                        if (pageable) {
-                            options.pager = json.pager;
-                            renderpager.call(self);
-                            $pager.show();
-                        }
+                        pageable && $pager.show();
+
                         $(".data-empty", $div).remove();
                     } else {
                         $table.hide();
-                        if (pageable) {
-                            $pager.hide();
-                        }
+                        pageable && $pager.hide();
                         if ($(".data-empty", $div).length == 0) {
                             $table.before('<div class="alert alert-error data-empty">没有查到任何数据！</div>');
                         }
                     }
-                }).then(function() {
-                    setTimeout(function() {
+                }).then(function () {
+                    setTimeout(function () {
                         self.loading.call(self);
                     }, 200);
                 });
             }
         },
-        removeLoading: function() {
+        removeLoading: function () {
             this.$loading.remove();
             this.$loading = null;
             this.isLoading = false;
         },
 
-        loading: function(callback) {
-            callback = callback || function() {
+        loading: function (callback) {
+            callback = callback || function () {
             };
 
             var animate = this.$div.find(".mask-needed").hasClass('fade') ? 'fade' : '';
@@ -123,7 +124,7 @@
                 this.$loading.removeClass('in');
 
                 var that = this;
-                $.support.transition && this.$div.find(".mask-needed").hasClass('fade') ? this.$loading.one($.support.transition.end, function() {
+                $.support.transition && this.$div.find(".mask-needed").hasClass('fade') ? this.$loading.one($.support.transition.end, function () {
                     that.removeLoading();
                 }) : that.removeLoading();
 
@@ -134,12 +135,12 @@
     };
 
     //private
-    var rendertable = function() {
+    var rendertable = function () {
         var self = this, $table = self.$table, $tmpl = self.$tmpl, data = self.options.data;
         $("tbody", $table).html($tmpl.render(data));
     };
 
-    var renderpager = function() {
+    var renderpager = function () {
         var self = this, $pager = self.$pager, pager = self.options.pager,
             pageindex = pager.pageindex, pagesize = pager.pagesize, total = pager.total,
             lastindex = Math.ceil(total / pagesize) - 1, pagewidth = 3, arr = [];
@@ -173,29 +174,30 @@
             arr.push('<li><a href="#' + (pageindex + 1) + '" title="下一页"><i class="icon-angle-right"></i></a></li>');
             arr.push('<li><a href="#' + lastindex + '" title="末页"><i class="icon-double-angle-right"></i></a></l');
         }
-        $(".qpagination", $pager).html(function() {
+        $(".qpagination", $pager).html(function () {
             return "<ul>" + arr.join("") + "</ul>";
         });
         $(".pagination-info", $pager).text("当前位置：" + (pageindex + 1) + "/" + (lastindex + 1) + "页 合计：" + total + "项");
     };
 
-    var getdata = function() {
+    var getdata = function () {
         var self = this, options = self.options, data = {};
 
         options.sidx && (data["sidx"] = options.sidx);
         options.sort && (data["sort"] = options.sort);
 
-        if (self.pager) {
+        if (self.options.pager) {
             data["pageindex"] = options.pager.pageindex;
             data["pagesize"] = options.pager.pagesize;
         }
+        return data;
     };
 
     //plugin
-    $.fn.qtable = function(option) {
-        return this.each(function() {
+    $.fn.qtable = function (option) {
+        return this.each(function () {
             var $this = $(this), data = $this.data('qtable'),
-                options = $.extend({}, $.fn.qtable.defaults, $this.data(), typeof option == 'object' && option);
+                options = $.extend(true, {}, $.fn.qtable.defaults, $this.data(), typeof option == 'object' && option);
             if (!data) $this.data('qtable', (data = new QTable(this, options)));
             if (typeof option == 'string') data[option]();
             else $this.init();
@@ -218,7 +220,7 @@
 
     $.fn.qtable.Constructor = QTable;
 
-    $.fn.qtable.noConflict = function() {
+    $.fn.qtable.noConflict = function () {
         $.fn.qtable = old;
         return this;
     };
