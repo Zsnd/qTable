@@ -58,7 +58,7 @@
         reload: function () {
             var self = this, options = self.options, url = options.url,
                 $div = self.$div, $table = self.$table, $pager = self.$pager,
-                pageable = self.pageable, data = getdata.call(self),
+                pageable = self.pageable, data = getrequestdata.call(self),
                 def = $.isEmptyObject(data) ? $.post(url) : $.post(url, data);
 
             if (url) {
@@ -180,11 +180,12 @@
         $(".pagination-info", $pager).text("当前位置：" + (pageindex + 1) + "/" + (lastindex + 1) + "页 合计：" + total + "项");
     };
 
-    var getdata = function () {
+    var getrequestdata = function () {
         var self = this, options = self.options, data = {};
 
         options.sidx && (data["sidx"] = options.sidx);
         options.sort && (data["sort"] = options.sort);
+        options.filter && (data["filter"] = options.filter);
 
         if (self.options.pager) {
             data["pageindex"] = options.pager.pageindex;
@@ -205,13 +206,14 @@
     };
 
     $.fn.qtable.defaults = {
-        url: undefined,
-        sidx: undefined,
+        url: null,
+        sidx: null,
         sort: "desc",
+        filter: null,
         pager: {
             pagesize: 20,
             pageindex: 0,
-            total: undefined
+            total: null
         },
         pagerclass: ".qpager",
         tmplclass: ".qtmpl",
