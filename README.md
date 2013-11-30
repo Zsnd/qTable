@@ -1,19 +1,18 @@
-﻿# 说明
+# 说明
 
-jquery.qtable.js 是一个基于[Bootstrap](https://github.com/twitter/bootstrap) table样式的jquery插件。这个插件很简单，提供了一些基本的与table相关的功能。
+jquery.qtable.js 是一个基于[Bootstrap3](http://getbootstrap.com/) table样式的jquery插件。这个插件很简单，提供了一些基本功能。
 
 []() 可以看到更多说明和例子。
 
 ## 需求
  - [jQuery](http://jquery.com/)
- - [Bootstrap](https://github.com/twitter/bootstrap)
+ - [Bootstrap3](http://getbootstrap.com/)
+ - [Font Awesome](http://fontawesome.io/) - 图标：fa-square-o fa-check-square-o fa-minus-square-o
  - [jsrender](https://github.com/BorisMoore/jsrender) - 模版工具
 
 ## 功能
  - 远程加载数据
  - 分页
- - 排序
- - 移动端支持 - [http://elvery.net/demo/responsive-tables/]() 第三种
 
 ## 使用
 
@@ -37,7 +36,7 @@ jquery.qtable.js 是一个基于[Bootstrap](https://github.com/twitter/bootstrap
 然后需要html
 
     <!-- qtable -->
-    <div id="container">
+    <div id="container" class="qt-content">
     <table class="table table-striped table-bordered" id="order-table">
         <thead>
             <tr>
