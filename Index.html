@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>qTable Demo</title>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" rel="stylesheet">
+    <link href="jquery.qtable.css" rel="stylesheet" />
+    <script src="//code.jquery.com/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <script src="//cdn.jsdelivr.net/jsrender/1.0pre35/jsrender.js"></script>
+    <script src="jquery.qtable.js"></script>
+    <script>
+        $(function () {
+            $("#qtable1").qtable();
+        })
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div id="qtable1" class="qt-content" data-url="index.json" data-tmpl="#t1-tmpl"></div>
+                <script id="t1-tmpl" type="text/x-jsrender">
+                    <table class="table table-hover table-condensed table-bordered">
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>邮箱</th>
+                                <th>创建日期</th>
+                                <th>是否激活</th>
+                                <th>注解</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{for #data}}
+                            <tr>
+                                <td>{{>name}}</td>
+                                <td>{{>email}}</td>
+                                <td>{{>createDate}}</td>
+                                <td>{{>isApproved}}</td>
+                                <td>{{>comment}}</td>
+                            </tr>
+                            {{/for}}
+                        </tbody>
+                    </table>
+                </script>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

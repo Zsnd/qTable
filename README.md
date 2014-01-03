@@ -10,57 +10,113 @@ jquery.qtable.js 是一个基于[Bootstrap3](http://getbootstrap.com/) table样�
  - [Font Awesome](http://fontawesome.io/) - 图标：fa-square-o fa-check-square-o fa-minus-square-o
  - [jsrender](https://github.com/BorisMoore/jsrender) - 模版工具
 
-## 功能
- - 远程加载数据
- - 分页
+## API
 
-## 使用
+###初始化
 
-首先假设我们需要操作一个*订单*，差不多是这样：
-
-    public class Order{
-
-        public int Id { get; set; }
-
-        public string Number { get; set; }
-
-        public DateTime Date { get; set; }
-
-        public string Creator { get; set; }
-
-        public string Remark { get; set; }
-    }
-
-
-
-然后需要html
-
-    <!-- qtable -->
-    <div id="container" class="qt-content">
-    <table class="table table-striped table-bordered" id="order-table">
+默认
+```html
+<div id="qtable" class="qt-content"></div>
+```
+```html
+<!-- tmpl https://github.com/BorisMoore/jsrender -->
+<script class="qt-tmpl" type="text/x-jsrender">
+    <table class="table table-hover table-condensed table-bordered">
         <thead>
             <tr>
-                <th data-field="number">编号</th>
-                <th data-field="date">日期</th>
-                <th data-field="creator">制表人</th>
-                <th data-field="remark">备注</th>
+                <th>用户名</th>
+                <th>邮箱</th>
+                <th>创建日期</th>
+                <th>是否激活</th>
+                <th>注解</th>
             </tr>
         </thead>
         <tbody>
+            {{for #data}}
+                <tr>
+                    <td>{{>name}}</td>
+                    <td>{{>email}}</td>
+                    <td>{{>createDate}}</td>
+                    <td>{{>isApproved}}</td>
+                    <td>{{>comment}}</td>
+                </tr>
+            {{/for}}
         </tbody>
     </table>
-    </div>
+</script>
+```
+```js
+$('#qtable').qtable();
+```
 
-    <!-- tmpl for tbody -->
-    <script id="order-table-body-tmpl" type="text/x-jsrender">
-        <tr {{if id !== undefined}}data-row-id="{{>id}}"{{/if}}>
-            <td data-title="编号">{{>number}}</td>
-            <td data-title="日期">{{>date}}</td>
-            <td data-title="制表人">{{>creator}}</td>
-            <td data-title="备注">{{>remark}}</td>
-        </tr>
-    </script>
+参数初始化
+```js
+$('#qtable').qtable({ url: "" });
+```
 
-通过JavaScript启动
-    
-    $("#container").qtable();
+Data attributes 初始化
+
+```html
+<div id="qtable" class="qt-content" data-url=""></div>
+```
+```js
+$('#qtable').qtable();
+```
+
+设置参数
+```js
+$('#qtable').qtable("option", "url", "");
+```
+设置多个参数
+```js
+$('#qtable').qtable("option", { url: "" });
+```
+获取参数
+```js
+var url = $('#qtable').qtable("option", "url");
+```
+
+###Options
+
+####url
+ajax远程获取数据
+- 默认值：`""`
+
+####sort
+ajax远程调用时提供的字段排序规则
+- 默认值：`{ field: "id", order: "desc" }`
+
+####pager
+ajax远程调用时提供的分页规则。
+- 默认值：`pager: { size: 20, index: 0 }`
+
+非远程时为本地数据分页规则。
+- 默认值: `false`
+
+####predicate
+ajax远程调用是提供的条件谓词。由服务器端代码决定。
+- 默认值：`{}`
+- 格式：
+ - `{ fuzzy: "" }`
+ - `{ exacts: [{ name: "", value: "" },{ name: "", value: "" }] }`
+ - `{ customs: [{ name: "", value: "" },{ name: "", value: "" }] }`
+
+####tmpl or tmplThead tmplTbody
+可以使用表格模板或是直接使用thead和tbody模板
+- 默认值：""
+
+####renderhelpers
+模板帮助方法
+- 默认值：{}
+
+####local
+url为""时，表示本地数据
+- 默认值：{}
+
+####check
+表格每行前的选择框
+- 默认值： `true`
+
+####nest
+表格嵌套时提供展开功能
+- 默认值：`true`
