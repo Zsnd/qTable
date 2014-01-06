@@ -13,6 +13,25 @@
         $(function () {
             $("#qtable1").qtable();
             $("#qtable2").qtable();
+            var d3 = [];
+            for (var i = 0; i < 30; i++) {
+                var b = false;
+                if (i % 2 == 0) {
+                    b = true;
+                }
+                var d = { name: "name" + i, email: "name" + i + "@xxx.xxx", createDate: "2014/1/1", isApproved: b, comment: "hello name" + i };
+                d3.push(d);
+            }
+            $("#qtable3").qtable({ data: d3 });
+
+            $("#e4-1").click(function () {
+                $("#qtable4").qtable("option", "data", d3);
+            });
+            $("#e4-2").click(function () {
+                $("#qtable4").qtable("option", "url", "json.html");
+            });
+
+            $("#qtable5").qtable();
         })
     </script>
 </head>
@@ -20,9 +39,12 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
+                <div class="page-header">
+                    <h2>例1：加载远程数据</h2>
+                </div>
                 <div id="qtable1" class="qt-content" data-url="json.html" data-tmpl="#t1-tmpl"></div>
                 <script id="t1-tmpl" type="text/x-jsrender">
-                    <table class="table table-hover table-condensed table-bordered">
+                    <table>
                         <thead>
                             <tr>
                                 <th>用户名</th>
@@ -49,7 +71,61 @@
         </div>
         <div class="row">
             <div class="col-md-12">
+                <div class="page-header">
+                    <h2>例2：加载远程数据，数据为0</h2>
+                </div>
                 <div id="qtable2" class="qt-content" data-url="empty.html" data-tmpl="#t1-tmpl"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                    <h2>例3：本地数据</h2>
+                </div>
+                <div id="qtable3" class="qt-content" data-tmpl="#t1-tmpl"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                    <h2>例4：设置属性</h2>
+                </div>
+                <div id="qtable4" class="qt-content" data-tmpl="#t1-tmpl">
+                    <div class="row qt-toolbar">
+                        <div class="col-md-12">
+                            <div class="btn-group">
+                                <button id="e4-1" class="btn btn-default">set data</button>
+                                <button id="e4-2" class="btn btn-default">set url</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                    <h2>例5：tmpl-thead & tmpl-tbody</h2>
+                </div>
+                <div id="qtable5" class="qt-content" data-url="json.html" data-tmpl-thead="#t5-tmpl-thead" data-tmpl-tbody="#t5-tmpl-tbody"></div>
+                <script id="t5-tmpl-thead" type="text/x-jsrender">
+                    <tr>
+                        <th>用户名</th>
+                        <th>邮箱</th>
+                        <th>创建日期</th>
+                        <th>是否激活</th>
+                        <th>注解</th>
+                    </tr>
+                </script>
+                <script id="t5-tmpl-tbody" type="text/x-jsrender">
+                    <tr>
+                        <td>{{>name}}</td>
+                        <td>{{>email}}</td>
+                        <td>{{>createDate}}</td>
+                        <td>{{>isApproved}}</td>
+                        <td>{{>comment}}</td>
+                    </tr>
+                </script>
             </div>
         </div>
     </div>

@@ -1,4 +1,4 @@
-﻿(function() {
+﻿(function () {
     "use strict";
     var contentclass = ".qt-content",
         checkclass = "th:first-child i.fa.fa-square-o",
@@ -13,7 +13,7 @@
         tathtmpl = '<th style="width: 2em" class="text-center"><i class="fa fa-square-o"></i></th>',
         tatdtmpl = '<td class="text-center"><i class="fa fa-square-o"></i></td>',
         spinner = '<div class="loading-spinner" style="width: 200px; margin-left: -100px;"><div class="progress progress-striped active"><div class="progress-bar" style="width: 100%;"></div></div></div>',
-        QTable = function(div, options) {
+        QTable = function (div, options) {
             var self = this, $div = self.$div = $(div);
             self.$tacon = $(masktmpl);
             self.$pacon = $(pagertmpl);
@@ -24,55 +24,63 @@
 
             $div.append(self.$tacon).append(self.$pacon);
             self.reinit.call(self);
-            self.reload.call(self);
         };
-
-    var _data, _pager, _nestcheck; //_url, _sort,  _predicate, _tmpl, _tmplThead, _tmplTbody, _renderhelpers, _local, _check, _nest;
 
     QTable.prototype = {
         constructor: QTable,
 
+        //_url, _sort,  _predicate, _tmpl, _tmplThead, _tmplTbody, _renderhelpers, _local, _check, _nest;
         //get set key word compatibility ie9+
         //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/get
         //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/set
         //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
-        _options: {
-            get data() {
-                if (this.url) {
-                    return this.remote.data;
+        _options: function () {
+            var _data, _pager, _nestcheck;
+
+            Object.defineProperty(this, "data", {
+                get: function () {
+                    if (this.url && this.remote) {
+                        return this.remote.data;
+                    }
+                    return _data;
+                },
+                set: function (v) {
+                    //set data of using local data
+                    this.url = "";
+                    _data = v;
                 }
-                return _data;
-            },
-            set data(val) {
-                _data = val;
-            },
-            get pager() {
-                return this.url ? _pager : false;
-            },
-            set pager(val) {
-                _pager = val;
-            },
-            get nestcheck() {
-                return this.nest && _nestcheck;
-            },
-            set nestcheck(val) {
-                _nestcheck = val;
-            }
+            });
+            Object.defineProperty(this, "pager", {
+                get: function () {
+                    return this.url ? _pager : false;
+                },
+                set: function (v) {
+                    _pager = v;
+                }
+            });
+            Object.defineProperty(this, "nestcheck", {
+                get: function () {
+                    return this.nest && _nestcheck;
+                },
+                set: function (v) {
+                    _nestcheck = v;
+                }
+            });
         },
 
-        reinit: function() {
+        reinit: function () {
             reinitCheckEvent.call(this);
             reinitPagerEvent.call(this);
         },
 
         //远程数据为{data,other,total}
-        reload: function() {
+        reload: function () {
             var self = this, url = self.options.url;
 
             if (url) {
                 var requestdata = getrequestdata.call(self);
 
-                var callback = function() {
+                var callback = function () {
                     $.ajax({
                         url: url,
                         //type: 'POST',
@@ -80,25 +88,25 @@
                         dataType: 'json',
                         data: JSON.stringify(requestdata),
                         contentType: 'application/json; charset=utf-8'
-                    }).done(function(remotedata) {
+                    }).done(function (remotedata) {
                         self.options.remote = remotedata;
                         self.render();
-                    }).then(function() {
+                    }).then(function () {
                         if (self.isLoading) {
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 self.loading();
                             }, 200);
                         }
-                    }).then(function() {
+                    }).then(function () {
                         var e = $.Event('reloaded.qtable');
                         self.$div.trigger(e);
                     });
                 };
                 self.loading(callback);
             } else {
-                self.loading(function() {
+                self.loading(function () {
                     self.render();
-                    setTimeout(function() {
+                    setTimeout(function () {
                         self.loading.call(self);
                     }, 200);
                 });
@@ -106,7 +114,7 @@
         },
 
         //tabledata pager {info pagination}
-        render: function() {
+        render: function () {
             var self = this, $div = self.$div;
 
             var e = $.Event('show.qtable'); //do something to remote or local
@@ -119,14 +127,14 @@
             rerenderpager.call(self, total, pager);
         },
 
-        removeLoading: function() {
+        removeLoading: function () {
             this.$loading && this.$loading.remove();
             this.$loading = null;
             this.isLoading = false;
         },
 
-        loading: function(callback) {
-            callback = callback || function() {
+        loading: function (callback) {
+            callback = callback || function () {
             };
             var $tacon = this.$tacon,
                 animate = $tacon.hasClass('fade') ? 'fade' : '';
@@ -151,7 +159,7 @@
                 var that = this;
                 var b2 = $.support.transition && $tacon.is(":visible");
 
-                b2 && this.$div.find(".qt-mask").hasClass('fade') ? this.$loading.one($.support.transition.end, function() {
+                b2 && this.$div.find(".qt-mask").hasClass('fade') ? this.$loading.one($.support.transition.end, function () {
                     that.removeLoading();
                 }) : that.removeLoading();
 
@@ -160,9 +168,9 @@
             }
         },
 
-        getsel: function(e) {
+        getsel: function (e) {
             var self = this, $div = self.$div;
-            var ids = $.map($(".table>tbody>tr.active", $div), function(v) {
+            var ids = $.map($(".table>tbody>tr.active", $div), function (v) {
                 return $(v).attr("data-row-id");
             });
             if (ids.length) {
@@ -173,11 +181,11 @@
                 return null;
             }
         },
-        getseldata: function() {
+        getseldata: function () {
             var self = this, $div = self.$div,
                 data = this.predata.call(self), arr = [];
 
-            $.each($(".table>tbody>tr", $div), function(i, tr) {
+            $.each($(".table>tbody>tr", $div), function (i, tr) {
                 if ($(tr).hasClass("active")) {
                     arr.push(data[i]);
                 }
@@ -185,14 +193,16 @@
             return arr;
         },
 
-        option: function(name, value) {
+        option: function (name, value) {
             var self = this, n = typeof name, v = typeof value;
-            if (n == "string" && v == "string") { //set value
+            if (n == "string" && v != "undefined") { //set value
                 self.options[name] = value;
                 self.reinit();
-            } else if (n == "object" && v == "undefined") { //set values
+                self.reload();
+            } else if (n == "object" && v != "undefined") { //set values
                 $.extend(self.options, name);
                 self.reinit();
+                self.reload();
             } else if (n == "string" && v == "undefined") { //get value
                 return self.options[name];
             }
@@ -200,7 +210,7 @@
     };
 
     //private
-    var tablehtml = function(data) {
+    var tablehtml = function (data) {
         var self = this,
             $tmpl = self.$tmpl,
             $thead = self.$tmplThead,
@@ -211,13 +221,13 @@
             if ($tmpl.length) {
                 return $tmpl.render([data], helper).replace(/<table.*>/, '<table class="' + tabletmplclass + '">');
             } else if ($thead.length && $tbody.length) {
-                return $(tablehtml).render({ thead: $thead.html(), tbody: $tbody.render(data, helper) });
+                return tabletmpl.replace(/{{:thead}}/, $thead.html()).replace(/{{:tbody}}/, $tbody.render(data, helper));
             }
         }
         return "";
     };
 
-    var rerendertable = function(data) {
+    var rerendertable = function (data) {
         var self = this, nest = self.options.nest,
             nestcheck = self.options.nestcheck, check = self.options.check,
             $tacon = self.$tacon,
@@ -241,7 +251,7 @@
         }
     };
 
-    var rerenderpager = function(total, pager) {
+    var rerenderpager = function (total, pager) {
         var self = this, $pacon = self.$pacon,
             $info = $(".qt-pager-info", $pacon),
             paginationable = self.options.pager;
@@ -291,7 +301,7 @@
         }
     };
 
-    var reinitCheckEvent = function() {
+    var reinitCheckEvent = function () {
         var self = this, check = self.options.check, $tablecontent = self.$tacon;
         $tablecontent.off("click");
 
@@ -316,37 +326,37 @@
                 nest_table_tbody_tr_td_f = nest_table + tbody_tr_td_f,
                 nest_table_tbody_tr_td_not_f = nest_table + tbody_tr_td_not_f;
 
-            var setclass = function($i, status) { //0 空框 1 打勾 2 -号
+            var setclass = function ($i, status) { //0 空框 1 打勾 2 -号
                 $i.toggleClass("fa fa-square-o fa-check-square-o fa-minus-square-o", false);
                 switch (status) {
-                case 1:
-                    $i.toggleClass("fa fa-check-square-o", true);
-                    break;
-                case 2:
-                    $i.toggleClass("fa fa-minus-square-o", true);
-                    break;
-                default:
-                    $i.toggleClass("fa fa-square-o", true);
+                    case 1:
+                        $i.toggleClass("fa fa-check-square-o", true);
+                        break;
+                    case 2:
+                        $i.toggleClass("fa fa-minus-square-o", true);
+                        break;
+                    default:
+                        $i.toggleClass("fa fa-square-o", true);
                 }
             },
-                updateth = function($ta) {
+                updateth = function ($ta) {
                     var $th_i = $(thead_tr_th_f_i, $ta),
                         $td_i = $(tbody_tr_td_f_i, $ta),
                         c1 = $td_i.length,
                         c2 = $td_i.filter(".fa.fa-check-square-o").length;
 
                     switch (c2) {
-                    case 0:
-                        setclass($th_i, 0);
-                        break;
-                    case c1:
-                        setclass($th_i, 1);
-                        break;
-                    default:
-                        setclass($th_i, 2);
+                        case 0:
+                            setclass($th_i, 0);
+                            break;
+                        case c1:
+                            setclass($th_i, 1);
+                            break;
+                        default:
+                            setclass($th_i, 2);
                     }
                 };
-            var active = function($td, status) { // status: true false
+            var active = function ($td, status) { // status: true false
                 var a = false, s = 0;
                 if (status) {
                     a = true;
@@ -356,7 +366,7 @@
                 var $tr = $td.closest("tr"), $i = $(td_f_i, $tr);
                 $tr.toggleClass("active", a);
                 setclass($i, s);
-            }, activeall = function($ta, status) {
+            }, activeall = function ($ta, status) {
                 var a = false, s = 0;
                 if (status) {
                     a = true;
@@ -368,8 +378,8 @@
                 setclass($td_i, s);
             };
 
-            var settable = function($tacon) {
-                $tacon.on("click", table_thead_tr_th_f, function() {
+            var settable = function ($tacon) {
+                $tacon.on("click", table_thead_tr_th_f, function () {
                     var $th = $(this), $i = $(i, $th), $ta = $th.closest("table");
 
                     if ($i.hasClass("fa-check-square-o")) {
@@ -381,22 +391,22 @@
                     }
                 });
 
-                $tacon.on("click", table_tbody_tr_td_not_f, function() {
+                $tacon.on("click", table_tbody_tr_td_not_f, function () {
                     var $td = $(this), $ta = $td.closest("table");
                     activeall($ta, false);
                     active($td, true);
                     updateth($ta);
                 });
 
-                $tacon.on("click", table_tbody_tr_td_f, function() {
+                $tacon.on("click", table_tbody_tr_td_f, function () {
                     var $td = $(this), $tr = $td.closest("tr"), $ta = $td.closest("table");
                     active($td, !$tr.hasClass("active"));
                     updateth($ta);
                 });
             };
 
-            var setnesttable = function($tacon) {
-                $tacon.on("click", nest_table_thead_tr_th_f, function() {
+            var setnesttable = function ($tacon) {
+                $tacon.on("click", nest_table_thead_tr_th_f, function () {
                     var $th = $(this), $i = $(i, $th), $ta_nest = $th.closest(".table-nested > table");
 
                     if ($ta_nest.find(thead_tr_th_f_i).length) {
@@ -410,7 +420,7 @@
                     }
                 });
 
-                $tacon.on("click", nest_table_tbody_tr_td_not_f, function() {
+                $tacon.on("click", nest_table_tbody_tr_td_not_f, function () {
                     var $td = $(this), $ta_nest = $td.closest(".table-nested > table");
 
                     if ($ta_nest.find(thead_tr_th_f_i).length) {
@@ -420,7 +430,7 @@
                     }
                 });
 
-                $tacon.on("click", nest_table_tbody_tr_td_f, function() {
+                $tacon.on("click", nest_table_tbody_tr_td_f, function () {
                     var $td = $(this), $tr = $td.closest("tr"), $ta_nest = $td.closest(".table-nested > table");
 
                     if ($ta_nest.find(thead_tr_th_f_i).length) {
@@ -435,7 +445,7 @@
         }
     };
 
-    var reinitPagerEvent = function() {
+    var reinitPagerEvent = function () {
         var self = this, pager = self.options.pager, $pagercontent = self.$pacon;
         $pagercontent.off("click");
 
@@ -443,10 +453,10 @@
             var pager_a_cur = ".qt-pagination .pagination li.active a",
                 pager_a = ".qt-pagination .pagination li:not(.active) a";
 
-            $pagercontent.on("click", pager_a_cur, function(e) {
+            $pagercontent.on("click", pager_a_cur, function (e) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-            }).on("click", pager_a, function(e) {
+            }).on("click", pager_a, function (e) {
                 e.preventDefault();
 
                 self.options.pager.index = parseInt($(this).attr("href").replace(/#/g, ""));
@@ -455,12 +465,12 @@
         }
     };
 
-    var initNest = function() {
+    var initNest = function () {
 
     };
 
     //pager predicate sort
-    var getrequestdata = function() {
+    var getrequestdata = function () {
         var self = this, data = {};
         data.pager = self.options.pager;
         data.predicate = self.options.predicate;
@@ -471,11 +481,17 @@
     var old = $.fn.qtable;
 
     //plugin
-    $.fn.qtable = function(a1, a2, a3) {
-        var func = function() {
-            var $this = $(this), option = a1, data = $this.data('qtable'),
-                options = $.extend(true, QTable.prototype._options, $.fn.qtable.defaults, $this.data(), typeof option == 'object' && option);
+    $.fn.qtable = function (a1, a2, a3) {
+        var func = function () {
+            var $this = $(this), option = a1, data = $this.data('qtable'), init = !data,
+                options = $.extend(true, new QTable.prototype._options(), $.fn.qtable.defaults, $this.data(), typeof option == 'object' && option);
             if (!data) $this.data('qtable', (data = new QTable(this, options)));
+
+            if (init && !(options.url == "" && options.data.length == 0) &&
+                option != 'reload' && option != 'option') {
+                data.reload.call(data);
+            }
+
             if (typeof option == 'string') {
                 var value = data[option](a2, a3);
                 if (value != undefined) {
@@ -511,7 +527,7 @@
 
     $.fn.qtable.Constructor = QTable;
 
-    $.fn.qtable.noConflict = function() {
+    $.fn.qtable.noConflict = function () {
         $.fn.qtable = old;
         return this;
     };
