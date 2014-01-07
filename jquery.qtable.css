@@ -1,18 +1,23 @@
 ﻿.qt-content{}
 
-.qtmpl { }
-
+.qt-check, .qt-nest{ width: 2em; cursor: pointer }
 .qt-mask { position: relative; }
-
 .loading-mask {
     background: #fff;
-    border-radius: 6px;
     bottom: 0;
     left: 0;
     position: absolute;
     right: 0;
     top: 0;
 }
+
+.table-hover > tbody > tr.qt-nest-tr:hover > td,
+.table-hover > tbody > tr.qt-nest-tr:hover > th {
+  background-color: #ffffff;
+}
+
+.table td.qt-nest-td { padding: 0; }
+.table td.qt-nest-td .table { margin-bottom: 0; width: 100% }
 
 .loading-spinner {
     left: 50%;
@@ -62,7 +67,12 @@
 
 .table th.sortable.sort-down:after { content: "\f0dd"; }
 
-.table td {
+.table > thead > tr > th,
+.table > tbody > tr > th,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > tbody > tr > td,
+.table > tfoot > tr > td {
     -ms-word-break: break-all;
     vertical-align: middle;
     word-break: break-all;
@@ -74,7 +84,6 @@
     max-width: 100px;
     overflow: hidden;
     text-overflow: ellipsis;
-    vertical-align: middle;
     white-space: nowrap;
 }
 
