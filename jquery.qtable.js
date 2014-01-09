@@ -8,7 +8,7 @@
         tmplclass = ".qt-tmpl",
         maskclass = ".qt-mark",
         masktmpl = '<div class="qt-mask fade in"></div>',
-        tableclass = 'qm-table table table-striped table-bordered table-hover table-condensed',
+        tableclass = 'qm-table table table-bordered table-hover table-condensed',
         nesttableclass = "qt-nest-table table table-striped table-bordered table-hover table-condensed",
         tabletmpl = '<table class="' + tableclass + '"><thead>{{:thead}}</thead><tbody>{{:tbody}}</tbody></table>',
         check_th_tmpl = '<th class="qt-check"><i class="fa fa-square-o"></i></th>',
@@ -85,8 +85,8 @@
                 var callback = function () {
                     $.ajax({
                         url: url,
-                        //type: 'POST',
-                        type: 'GET',//iis no allow post to index.json
+                        type: 'POST',
+                        //type: 'GET',//iis no allow post to index.json
                         dataType: 'json',
                         data: JSON.stringify(requestdata),
                         contentType: 'application/json; charset=utf-8'
@@ -170,24 +170,40 @@
             }
         },
 
-        getsel: function (e) {
-            var self = this, $div = self.$div;
-            var ids = $.map($(".table>tbody>tr.active", $div), function (v) {
-                return $(v).attr("data-row-id");
-            });
-            if (ids.length) {
-                return ids;
+        getselid: function (e) {
+            var data = this.getselids(e);
+            if (data) {
+                return data[0];
+            }
+            return null;
+        },
+        getselidsnoerror: function () {
+            var data = this.getsel();
+            if (data && data.length) {
+                return $.map(data, function (v) {
+                    return v.id;
+                });
             } else {
-                $.error("警告", "请选择记录！");
+                return null;
+            }
+        },
+        getselids: function (e) {
+            var data = this.getsel();
+            if (data && data.length) {
+                return $.map(data, function (v) {
+                    return v.id;
+                });
+            } else {
+                $.error ? $.error("警告", "请选择记录！") : alert("请选择记录！");
                 e && e.stopPropagation();
                 return null;
             }
         },
-        getseldata: function () {
-            var self = this, $div = self.$div,
-                data = this.predata.call(self), arr = [];
+        getsel: function () {
+            var self = this, $tacon = self.$tacon,
+                data = self.options.data, arr = [];
 
-            $.each($(".table>tbody>tr", $div), function (i, tr) {
+            $.each($(">table>tbody>tr:not(.qt-nest-tr)", $tacon), function (i, tr) {
                 if ($(tr).hasClass("active")) {
                     arr.push(data[i]);
                 }
@@ -200,11 +216,9 @@
             if (n == "string" && v != "undefined") { //set value
                 self.options[name] = value;
                 self.reinit();
-                self.reload();
             } else if (n == "object" && v == "undefined") { //set values
                 $.extend(self.options, name);
                 self.reinit();
-                self.reload();
             } else if (n == "string" && v == "undefined") { //get value
                 return self.options[name];
             }
@@ -217,7 +231,7 @@
             $tmpl = self.$tmpl,
             $thead = self.$tmplThead,
             $tbody = self.$tmplTbody,
-            helper = self.renderhelpers;
+            helper = self.options.renderhelpers;
 
         if (data && data.length) {
             if ($tmpl.length) {
@@ -291,38 +305,52 @@
             $pacon.show();
             if (paginationable) {
                 var pageindex = pager.index, pagesize = pager.size,
-                    lastindex = Math.ceil(total / pagesize) - 1, pagewidth = 3, arr = [];
+                    totalpage = Math.ceil(total / pagesize),
+                    lastindex = totalpage - 1, pagewidth = 3,
+                    plbtnable = (pagewidth * 2 + 1) <= totalpage, arr = [];
 
                 $info.text("当前位置：" + (pageindex + 1) + "/" + (lastindex + 1) + "页 合计：" + total + "项");
 
                 if (total <= pagesize) { //不需要分页
                     return;
                 }
-                if (pageindex > pagewidth) { //首页上一页按钮
-                    arr.push('<li><a href="#0" title="首页"><i class="fa fa-angle-double-left"></i></a></li>');
-                    arr.push('<li><a href="#' + (pageindex - 1) + '" title="上一页"><i class="fa fa-angle-left"></i></a></li>');
-                }
-                //左边
-                for (var i = pagewidth; i > 0; i--) {
-                    var index = pageindex - i;
-                    if (index >= 0) {
-                        arr.push('<li><a href="#' + index + '">' + (index + 1) + '</a></li>');
+                if (!plbtnable) {
+                    for (var i = 0; i < totalpage; i++) {
+                        if (i == pageindex) {
+                            arr.push('<li class="active"><a href="#' + i + '">' + (i + 1) + '</a></li>');
+                        } else {
+                            arr.push('<li><a href="#' + i + '">' + (i + 1) + '</a></li>');
+                        }
                     }
-                }
-                //当前页按钮
-                arr.push('<li class="active"><a href="#' + pageindex + '">' + (pageindex + 1) + '</a></li>');
+                } else {
+                    if (pageindex > pagewidth) { //首页上一页按钮
+                        arr.push('<li><a href="#0" title="首页"><i class="fa fa-angle-double-left"></i></a></li>');
+                        arr.push('<li><a href="#' + (pageindex - 1) + '" title="上一页"><i class="fa fa-angle-left"></i></a></li>');
+                    }
+                    //左边
+                    for (var j = pagewidth; j > 0; j--) {
+                        var index = pageindex - j;
+                        if (index >= 0) {
+                            arr.push('<li><a href="#' + index + '">' + (index + 1) + '</a></li>');
+                        }
+                    }
+                    //当前页按钮
+                    arr.push('<li class="active"><a href="#' + pageindex + '">' + (pageindex + 1) + '</a></li>');
 
-                //右边
-                for (var i1 = 0; i1 < pagewidth; i1++) {
-                    var index1 = pageindex + i1 + 1;
-                    if (index1 <= lastindex) {
-                        arr.push('<li><a href="#' + index1 + '">' + (index1 + 1) + '</a></li>');
+                    //右边
+                    for (var k = 0; k < pagewidth; k++) {
+                        var index1 = pageindex + k + 1;
+                        if (index1 <= lastindex) {
+                            arr.push('<li><a href="#' + index1 + '">' + (index1 + 1) + '</a></li>');
+                        }
+                    }
+                    if (pageindex < lastindex - pagewidth) { //需要下一页末页按钮
+                        arr.push('<li><a href="#' + (pageindex + 1) + '" title="下一页"><i class="fa fa-angle-right"></i></a></li>');
+                        arr.push('<li><a href="#' + lastindex + '" title="末页"><i class="fa fa-angle-double-right"></i></a></l');
                     }
                 }
-                if (pageindex < lastindex - pagewidth) { //需要下一页末页按钮
-                    arr.push('<li><a href="#' + (pageindex + 1) + '" title="下一页"><i class="fa fa-angle-right"></i></a></li>');
-                    arr.push('<li><a href="#' + lastindex + '" title="末页"><i class="fa fa-angle-double-right"></i></a></l');
-                }
+
+
                 $pacon.append('<div class="col-md-6 qt-pagination"><ul class="pagination pull-right">' + arr.join("") + '</ul></div>');
             } else {
                 $info.text("合计：" + total + "项");
@@ -526,8 +554,10 @@
 
     //pager predicate sort
     var getrequestdata = function () {
-        var self = this, data = {};
-        data.pager = self.options.pager;
+        var self = this, pager = self.options.pager, data = {};
+        if (pager) {
+            data.pager = pager;
+        }
         data.predicate = self.options.predicate;
         data.sort = self.options.sort;
         return data;
@@ -555,8 +585,9 @@
             }
         };
 
-        if (typeof a1 == 'string' && a1 == 'option' && typeof a2 == 'string' && typeof a3 == 'undefined') {
-            //get prop value
+        if ((typeof a1 == "string" && a1 == "option" && typeof a2 == "string" && typeof a3 == "undefined") ||
+            (typeof a1 == "string" && a1.indexOf("get") > -1 && typeof a2 == "undefined" && typeof a3 == "undefined")) {
+            //method
             return func.call(this.eq(0));
         } else {
             return this.each(func);
@@ -568,6 +599,7 @@
         sort: { field: "id", order: "desc" },
         pager: { index: 0, size: 20 },
         predicate: {},
+        //remote
 
         tmpl: "",
         tmplThead: "",
@@ -590,7 +622,7 @@
         $.views.tags("qtnest", function (array) {
             if (array && array.length) {
                 var html = '<tr class="qt-nest-tr hide"><td colspan="10" class="qt-nest-td">' +
-                    $(this.tagCtx.props.tmpl).render(array) +
+                    $(this.tagCtx.props.tmpl).render([array]) +
                     '</td></tr>';
                 return html;
             }

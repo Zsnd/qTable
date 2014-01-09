@@ -31,10 +31,10 @@
             $("#qtable3").qtable({ data: d3 });
 
             $("#e4-1").click(function () {
-                $("#qtable4").qtable("option", "data", d3);
+                $("#qtable4").qtable("option", "data", d3).qtable("reload");
             });
             $("#e4-2").click(function () {
-                $("#qtable4").qtable("option", "url", "index.json");
+                $("#qtable4").qtable("option", "url", "index.json").qtable("reload");
             });
 
             $("#qtable5").qtable();
@@ -44,19 +44,19 @@
                 d6[i].accounts = arr(10);
                 i++;
             }
-            
+
             $("#qtable6").qtable({ data: d6 });
             $("#e6-1").click(function () {
-                $("#qtable6").qtable("option", { check: false });
+                $("#qtable6").qtable("option", { check: false }).qtable("reload");
             });
             $("#e6-2").click(function () {
-                $("#qtable6").qtable("option", { nest: false });
+                $("#qtable6").qtable("option", { nest: false }).qtable("reload");
             });
             $("#e6-3").click(function () {
-                $("#qtable6").qtable("option", { nestcheck: false });
+                $("#qtable6").qtable("option", { nestcheck: false }).qtable("reload");
             });
             $("#e6-4").click(function () {
-                $("#qtable6").qtable("option", { check: true, nest: true, nestcheck: true });
+                $("#qtable6").qtable("option", { check: true, nest: true, nestcheck: true }).qtable("reload");
             });
         })
     </script>
@@ -191,41 +191,34 @@
                                 <td>{{>isApproved}}</td>
                                 <td>{{>comment}}</td>
                             </tr>
-                            {{include tmpl="#t6-nest-tmpl" /}}
+                            {{qtnest accounts tmpl="#t6-nest-tmpl" /}}
                             {{/for}}
                         </tbody>
                     </table>
                 </script>
                 <script id="t6-nest-tmpl" type="text/x-jsrender">
-                    {{if accounts && accounts.length}}
-                    <tr class="qt-nest-tr hide">
-                        <td colspan="10" class="qt-nest-td">
-                            <table class="qt-nest-table table table-bordered table-condensed">
-                                <thead>
-                                    <tr>
-                                        <th>子用户名</th>
-                                        <th>邮箱</th>
-                                        <th>创建日期</th>
-                                        <th>是否激活</th>
-                                        <th>注解</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {{for accounts}}
-                                    <tr>
-                                        <td>{{>name}}</td>
-                                        <td>{{>email}}</td>
-                                        <td>{{>createDate}}</td>
-                                        <td>{{>isApproved}}</td>
-                                        <td>{{>comment}}</td>
-                                    </tr>
-                                    {{/for}}
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                    {{/if}}
-
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>子用户名</th>
+                                <th>邮箱</th>
+                                <th>创建日期</th>
+                                <th>是否激活</th>
+                                <th>注解</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{for #data}}
+                            <tr>
+                                <td>{{>name}}</td>
+                                <td>{{>email}}</td>
+                                <td>{{>createDate}}</td>
+                                <td>{{>isApproved}}</td>
+                                <td>{{>comment}}</td>
+                            </tr>
+                            {{/for}}
+                        </tbody>
+                    </table>
                 </script>
             </div>
         </div>
