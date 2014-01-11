@@ -1,4 +1,4 @@
-# qTable v0.3.1
+# qTable v0.3.2
 
 jquery.qtable.js 是一个table插件，基于jquery。
 
@@ -121,4 +121,4 @@ ajax远程调用时提供的字段排序参数
 
 #### nestcheck
 嵌套表格每行前的选择框
-- 默认值：`true`
+- 默认值：`false`

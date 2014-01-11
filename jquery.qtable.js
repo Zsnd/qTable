@@ -609,7 +609,7 @@
         data: [],
         check: true,
         nest: true,
-        nestcheck: true,
+        nestcheck: false,
     };
 
     $.fn.qtable.Constructor = QTable;

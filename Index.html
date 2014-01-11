@@ -45,7 +45,7 @@
                 i++;
             }
 
-            $("#qtable6").qtable({ data: d6 });
+            $("#qtable6").qtable({ data: d6, nestcheck: true });
             $("#e6-1").click(function () {
                 $("#qtable6").qtable("option", { check: false }).qtable("reload");
             });
