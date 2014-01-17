@@ -52,12 +52,21 @@
             $("#e6-2").click(function () {
                 $("#qtable6").qtable("option", { nest: false }).qtable("reload");
             });
-            $("#e6-3").click(function () {
-                $("#qtable6").qtable("option", { nestcheck: false }).qtable("reload");
-            });
             $("#e6-4").click(function () {
-                $("#qtable6").qtable("option", { check: true, nest: true, nestcheck: true }).qtable("reload");
+                $("#qtable6").qtable("option", { check: true, nest: true }).qtable("reload");
             });
+
+            var d7 = $.extend([], d6);
+            for (var j = 0; j < d7.length; j++) {
+                var as = d7[j].accounts;
+                if (as) {
+                    for (var k = 0; k < as.length; k++) {
+                        d7[j].accounts[k].accounts = arr(10);
+                        k++;
+                    }
+                }
+            }
+            $("#qtable7").qtable({ data: d7 });
         })
     </script>
 </head>
@@ -165,7 +174,6 @@
                             <div class="btn-group">
                                 <button id="e6-1" class="btn btn-default">set check false</button>
                                 <button id="e6-2" class="btn btn-default">set nest false</button>
-                                <button id="e6-3" class="btn btn-default">set nestcheck false</button>
                                 <button id="e6-4" class="btn btn-default">default</button>
                             </div>
                         </div>
@@ -191,34 +199,77 @@
                                 <td>{{>isApproved}}</td>
                                 <td>{{>comment}}</td>
                             </tr>
-                            {{qtnest accounts tmpl="#t6-nest-tmpl" /}}
+                            {{qtnest accounts data_tmpl_thead="#t6-nest-thead" data_tmpl_tbody="#t6-nest-tbody" /}}
                             {{/for}}
                         </tbody>
                     </table>
                 </script>
-                <script id="t6-nest-tmpl" type="text/x-jsrender">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>子用户名</th>
-                                <th>邮箱</th>
-                                <th>创建日期</th>
-                                <th>是否激活</th>
-                                <th>注解</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {{for #data}}
-                            <tr>
-                                <td>{{>name}}</td>
-                                <td>{{>email}}</td>
-                                <td>{{>createDate}}</td>
-                                <td>{{>isApproved}}</td>
-                                <td>{{>comment}}</td>
-                            </tr>
-                            {{/for}}
-                        </tbody>
-                    </table>
+                <script id="t6-nest-thead" type="text/x-jsrender">
+                    <tr>
+                        <th>子用户名</th>
+                        <th>邮箱</th>
+                        <th>创建日期</th>
+                        <th>是否激活</th>
+                        <th>注解</th>
+                    </tr>
+                </script>
+                <script id="t6-nest-tbody" type="text/x-jsrender">
+                    <tr>
+                        <td>{{>name}}</td>
+                        <td>{{>email}}</td>
+                        <td>{{>createDate}}</td>
+                        <td>{{>isApproved}}</td>
+                        <td>{{>comment}}</td>
+                    </tr>
+                </script>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                    <h2>例7：多层嵌套表格</h2>
+                </div>
+                <div id="qtable7" class="qt-content" data-tmpl-thead=".t7-tmpl-thead" data-tmpl-tbody=".t7-tmpl-tbody">
+                </div>
+
+                <script class="t7-tmpl-thead" type="text/x-jsrender">
+                    <tr>
+                        <th>用户名</th>
+                        <th>邮箱</th>
+                        <th>创建日期</th>
+                        <th>是否激活</th>
+                        <th>注解</th>
+                    </tr>
+                </script>
+                <script class="t7-tmpl-tbody" type="text/x-jsrender">
+                    <tr>
+                        <td>{{>name}}</td>
+                        <td>{{>email}}</td>
+                        <td>{{>createDate}}</td>
+                        <td>{{>isApproved}}</td>
+                        <td>{{>comment}}</td>
+                    </tr>
+                    {{qtnest accounts data_tmpl_thead=".t7-tmpl-thead" data_tmpl_tbody=".t7-tmpl-tbody2" data_check="false" /}}
+                </script>
+                <script class="t7-tmpl-tbody2" type="text/x-jsrender">
+                    <tr>
+                        <td>{{>name}}</td>
+                        <td>{{>email}}</td>
+                        <td>{{>createDate}}</td>
+                        <td>{{>isApproved}}</td>
+                        <td>{{>comment}}</td>
+                    </tr>
+                    {{qtnest accounts data_tmpl_thead=".t7-tmpl-thead" data_tmpl_tbody=".t7-tmpl-tbody3" /}}
+                </script>
+                <script class="t7-tmpl-tbody3" type="text/x-jsrender">
+                    <tr>
+                        <td>{{>name}}</td>
+                        <td>{{>email}}</td>
+                        <td>{{>createDate}}</td>
+                        <td>{{>isApproved}}</td>
+                        <td>{{>comment}}</td>
+                    </tr>
                 </script>
             </div>
         </div>

@@ -23,7 +23,8 @@
             self.$tmplTbody = $(options.tmplTbody);
             self.options = options;
 
-            $div.append(self.$tacon).append(self.$pacon);
+            $div.append(self.$tacon);
+            $div.hasClass("qt-nest-content") || $div.append(self.$pacon);
             self.reinit.call(self);
         };
 
@@ -36,7 +37,7 @@
         //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/set
         //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
         _options: function () {
-            var _data, _pager, _nestcheck;
+            var _data, _pager;
 
             Object.defineProperty(this, "data", {
                 get: function () {
@@ -57,14 +58,6 @@
                 },
                 set: function (v) {
                     _pager = v;
-                }
-            });
-            Object.defineProperty(this, "nestcheck", {
-                get: function () {
-                    return this.nest && _nestcheck;
-                },
-                set: function (v) {
-                    _nestcheck = v;
                 }
             });
         },
@@ -226,8 +219,8 @@
     };
 
     //private
-    var tablehtml = function (data) {
-        var self = this,
+    var tableobject = function (data) {
+        var self = this, table,
             $tmpl = self.$tmpl,
             $thead = self.$tmplThead,
             $tbody = self.$tmplTbody,
@@ -235,22 +228,36 @@
 
         if (data && data.length) {
             if ($tmpl.length) {
-                return $tmpl.render([data], helper).replace(/<table.*>/, '<table class="' + tableclass + '">');
+                table = $tmpl.render([data], helper).replace(/<table.*>/, '<table class="' + tableclass + '">');
             } else if ($thead.length && $tbody.length) {
-                return tabletmpl.replace(/{{:thead}}/, $thead.html()).replace(/{{:tbody}}/, $tbody.render(data, helper));
+                table = tabletmpl.replace(/{{:thead}}/, $thead.html()).replace(/{{:tbody}}/, $tbody.render(data, helper));
             }
         }
-        return "";
+        if (table) {
+            var $table = $(table);
+            if ($("tr.qt-nest-tr", $table).length) { // is nest
+                $.each($(">tbody>tr:not(.qt-nest-tr)", $table), function (i, tr) {
+                    var $nest_tr = $(tr).next("tr.qt-nest-tr");
+                    if ($nest_tr.length) {
+                        var $nest = $(">td.qt-nest-td>div.qt-nest-content", $nest_tr),
+                            nestdata = data[i][$nest.attr("data-bind-field")];
+
+                        $nest.data("data", nestdata);
+                    }
+                });
+            }
+            return $table;
+        }
+        return null;
     };
 
     var rerendertable = function (data) {
         var self = this, nest = self.options.nest,
             nestcheck = self.options.nestcheck, check = self.options.check,
             $tacon = self.$tacon,
-            table = tablehtml.call(self, data);
+            $table = tableobject.call(self, data);
         $tacon.find("> table").remove().end().find("> div.alert").remove();
-        if (table) {
-            var $table = $(table);
+        if ($table) {
             if (nest) {
                 var $nest_trs = $table.find(">tbody>tr.qt-nest-tr");
                 if ($nest_trs.length) {
@@ -283,11 +290,6 @@
                     ">tbody>tr:not(.qt-nest-tr)").prepend(check_th_tmpl).end()
                     .find(">tbody>tr.qt-nest-tr").prepend("<th></th>");
             }
-            if (nestcheck) {
-                $table.find("tr.qt-nest-tr > td.qt-nest-td > table > thead > tr, " +
-                    "tr.qt-nest-tr > td.qt-nest-td > table > tbody > tr:not(.qt-nest-tr)").prepend(check_th_tmpl).end()
-                    .find("tr.qt-nest-tr > td.qt-nest-td > table > tbody > tr.qt-nest-tr").prepend("<th></th>");
-            }
             $tacon.append($table);
         } else {
             $tacon.append('<div class="alert alert-danger data-empty">未有任何数据！</div>');
@@ -295,65 +297,66 @@
     };
 
     var rerenderpager = function (total, pager) {
-        var self = this, $pacon = self.$pacon,
-            $info = $(".qt-pager-info", $pacon),
-            paginationable = self.options.pager;
+        var self = this, $pacon = self.$pacon;
+        if ($pacon) {
+            var $info = $(".qt-pager-info", $pacon),
+                paginationable = self.options.pager;
 
-        $(".qt-pagination", $pacon).remove();
-        $pacon.hide();
-        if (total > 0) {
-            $pacon.show();
-            if (paginationable) {
-                var pageindex = pager.index, pagesize = pager.size,
-                    totalpage = Math.ceil(total / pagesize),
-                    lastindex = totalpage - 1, pagewidth = 3,
-                    plbtnable = (pagewidth * 2 + 1) <= totalpage, arr = [];
+            $(".qt-pagination", $pacon).remove();
+            $pacon.hide();
+            if (total > 0) {
+                $pacon.show();
+                if (paginationable) {
+                    var pageindex = pager.index, pagesize = pager.size,
+                        totalpage = Math.ceil(total / pagesize),
+                        lastindex = totalpage - 1, pagewidth = 3,
+                        plbtnable = (pagewidth * 2 + 1) <= totalpage, arr = [];
 
-                $info.text("当前位置：" + (pageindex + 1) + "/" + (lastindex + 1) + "页 合计：" + total + "项");
+                    $info.text("当前位置：" + (pageindex + 1) + "/" + (lastindex + 1) + "页 合计：" + total + "项");
 
-                if (total <= pagesize) { //不需要分页
-                    return;
-                }
-                if (!plbtnable) {
-                    for (var i = 0; i < totalpage; i++) {
-                        if (i == pageindex) {
-                            arr.push('<li class="active"><a href="#' + i + '">' + (i + 1) + '</a></li>');
-                        } else {
-                            arr.push('<li><a href="#' + i + '">' + (i + 1) + '</a></li>');
+                    if (total <= pagesize) { //不需要分页
+                        return;
+                    }
+                    if (!plbtnable) {
+                        for (var i = 0; i < totalpage; i++) {
+                            if (i == pageindex) {
+                                arr.push('<li class="active"><a href="#' + i + '">' + (i + 1) + '</a></li>');
+                            } else {
+                                arr.push('<li><a href="#' + i + '">' + (i + 1) + '</a></li>');
+                            }
+                        }
+                    } else {
+                        if (pageindex > pagewidth) { //首页上一页按钮
+                            arr.push('<li><a href="#0" title="首页"><i class="fa fa-angle-double-left"></i></a></li>');
+                            arr.push('<li><a href="#' + (pageindex - 1) + '" title="上一页"><i class="fa fa-angle-left"></i></a></li>');
+                        }
+                        //左边
+                        for (var j = pagewidth; j > 0; j--) {
+                            var index = pageindex - j;
+                            if (index >= 0) {
+                                arr.push('<li><a href="#' + index + '">' + (index + 1) + '</a></li>');
+                            }
+                        }
+                        //当前页按钮
+                        arr.push('<li class="active"><a href="#' + pageindex + '">' + (pageindex + 1) + '</a></li>');
+
+                        //右边
+                        for (var k = 0; k < pagewidth; k++) {
+                            var index1 = pageindex + k + 1;
+                            if (index1 <= lastindex) {
+                                arr.push('<li><a href="#' + index1 + '">' + (index1 + 1) + '</a></li>');
+                            }
+                        }
+                        if (pageindex < lastindex - pagewidth) { //需要下一页末页按钮
+                            arr.push('<li><a href="#' + (pageindex + 1) + '" title="下一页"><i class="fa fa-angle-right"></i></a></li>');
+                            arr.push('<li><a href="#' + lastindex + '" title="末页"><i class="fa fa-angle-double-right"></i></a></l');
                         }
                     }
+
+                    $pacon.append('<div class="col-md-6 qt-pagination"><ul class="pagination pull-right">' + arr.join("") + '</ul></div>');
                 } else {
-                    if (pageindex > pagewidth) { //首页上一页按钮
-                        arr.push('<li><a href="#0" title="首页"><i class="fa fa-angle-double-left"></i></a></li>');
-                        arr.push('<li><a href="#' + (pageindex - 1) + '" title="上一页"><i class="fa fa-angle-left"></i></a></li>');
-                    }
-                    //左边
-                    for (var j = pagewidth; j > 0; j--) {
-                        var index = pageindex - j;
-                        if (index >= 0) {
-                            arr.push('<li><a href="#' + index + '">' + (index + 1) + '</a></li>');
-                        }
-                    }
-                    //当前页按钮
-                    arr.push('<li class="active"><a href="#' + pageindex + '">' + (pageindex + 1) + '</a></li>');
-
-                    //右边
-                    for (var k = 0; k < pagewidth; k++) {
-                        var index1 = pageindex + k + 1;
-                        if (index1 <= lastindex) {
-                            arr.push('<li><a href="#' + index1 + '">' + (index1 + 1) + '</a></li>');
-                        }
-                    }
-                    if (pageindex < lastindex - pagewidth) { //需要下一页末页按钮
-                        arr.push('<li><a href="#' + (pageindex + 1) + '" title="下一页"><i class="fa fa-angle-right"></i></a></li>');
-                        arr.push('<li><a href="#' + lastindex + '" title="末页"><i class="fa fa-angle-double-right"></i></a></l');
-                    }
+                    $info.text("合计：" + total + "项");
                 }
-
-
-                $pacon.append('<div class="col-md-6 qt-pagination"><ul class="pagination pull-right">' + arr.join("") + '</ul></div>');
-            } else {
-                $info.text("合计：" + total + "项");
             }
         }
     };
@@ -378,12 +381,7 @@
             tbody_th_i = tbody_th + i;
 
         var th_i = ">th.qt-check" + i;
-
-        var nest_table = "tr.qt-nest-tr>td.qt-nest-td>table",
-            nest_table_thead_th = nest_table + thead_th,
-            nest_table_tbody_th = nest_table + tbody_th,
-            nest_table_tbody_td = nest_table + tbody_td;
-
+        
         var setclass = function ($i, status) { //0 空框 1 打勾 2 -号
             $i.toggleClass("fa fa-square-o fa-check-square-o fa-minus-square-o", false);
             switch (status) {
@@ -461,42 +459,7 @@
                 updateth($ta);
             });
         };
-        var setnesttable = function ($tacon) {
-            $tacon.on("click.check", nest_table_thead_th, function () {
-                var $th = $(this), $i = $(i, $th), $ta_nest = $th.closest(".qt-nest-td > table");
-
-                if ($ta_nest.find(thead_th_i).length) {
-                    if ($i.hasClass("fa-check-square-o")) {
-                        activeall($ta_nest, false);
-                        setclass($i, 0);
-                    } else {
-                        activeall($ta_nest, true);
-                        setclass($i, 1);
-                    }
-                }
-            });
-
-            $tacon.on("click.check", nest_table_tbody_td, function () {
-                var $td = $(this), $ta_nest = $td.closest(".qt-nest-td > table");
-
-                if ($ta_nest.find(thead_th_i).length) {
-                    activeall($ta_nest, false);
-                    active($td, true);
-                    updateth($ta_nest);
-                }
-            });
-
-            $tacon.on("click.check", nest_table_tbody_th, function () {
-                var $td = $(this), $tr = $td.closest("tr"), $ta_nest = $td.closest(".qt-nest-td > table");
-
-                if ($ta_nest.find(thead_th_i).length) {
-                    active($td, !$tr.hasClass("active"));
-                    updateth($ta_nest);
-                }
-            });
-        };
         check && settable($tablecontent);
-        nestcheck && setnesttable($tablecontent);
     };
 
     var reinitPagerEvent = function () {
@@ -537,8 +500,12 @@
             e.stopPropagation();
             var $i = $(this).find(">i.fa"),
                 $nest_tr = $i.closest("tr").next("tr.qt-nest-tr"),
+                $nest = $(">td.qt-nest-td>div.qt-nest-content", $nest_tr),
                 status = $i.hasClass("fa-plus");
             setclass($i, status);
+            if (status && !$nest.data("qtable")) {
+                $nest.qtable();
+            }
             $nest_tr.toggleClass("hide", !status);
 
         }).on("click.nest", "thead>tr>th.qt-nest", function (e) {
@@ -609,7 +576,6 @@
         data: [],
         check: true,
         nest: true,
-        nestcheck: false,
     };
 
     $.fn.qtable.Constructor = QTable;
@@ -618,16 +584,20 @@
         $.fn.qtable = old;
         return this;
     };
+    
     $(function () {
         $.views.tags("qtnest", function (array) {
             if (array && array.length) {
+                var ctx = this.tagCtx, bindfield = ctx.params.split(" ")[0],
+                    arr = ['data-bind-field="' + bindfield + '"'];
+                for (var name in ctx.props) {
+                    arr.push(name.replace(/_/g, "-") + '="' + ctx.props[name] + '"');
+                }
                 var html = '<tr class="qt-nest-tr hide"><td colspan="10" class="qt-nest-td">' +
-                    $(this.tagCtx.props.tmpl).render([array]) +
-                    '</td></tr>';
+                    '<div class="qt-nest-content" ' + arr.join(" ") + '></div></td></tr>';
                 return html;
             }
             return "";
         });
     });
-
 })(jQuery);

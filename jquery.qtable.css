@@ -1,7 +1,9 @@
 ﻿.qt-content{}
+.qt-nest-content{}
 
 .qt-check, .qt-nest{ width: 2em; cursor: pointer }
 .qt-mask { position: relative; }
+.qt-mask>.alert { margin-bottom: 0; }
 .loading-mask {
     background: #fff;
     bottom: 0;
