@@ -18,10 +18,8 @@
             var self = this, $div = self.$div = $(div);
             self.$tacon = $(masktmpl);
             self.$pacon = $(pagertmpl);
-            self.$tmpl = $(options.tmpl);
-            self.$tmplThead = $(options.tmplThead);
-            self.$tmplTbody = $(options.tmplTbody);
             self.options = options;
+            self.options["_this"] = self;
 
             $div.append(self.$tacon);
             $div.hasClass("qt-nest-content") || $div.append(self.$pacon);
@@ -58,6 +56,34 @@
                 },
                 set: function (v) {
                     _pager = v;
+                }
+            });
+            Object.defineProperty(this, "detail", {
+                get: function () {
+                    if (this._this) {
+                        var id = this._this.$div.attr("id");
+                        if (id) {
+                            var value = localStorage.getItem(id);
+                            if (value) {
+                                var lo = JSON.parse(value);
+                                return lo.detail;
+                            }
+                        }
+                    }
+                    return false;
+                },
+                set: function (v) {
+                    if (this._this) {
+                        var id = this._this.$div.attr("id");
+                        if (id) {
+                            var value = localStorage.getItem(id), json = { detail: v };
+                            if (value) {
+                                var lo = JSON.parse(value);
+                                json = $.extend(true, lo, json);
+                            } 
+                            localStorage.setItem(id, JSON.stringify(json));
+                        }
+                    }
                 }
             });
         },
@@ -198,7 +224,29 @@
 
             $.each($(">table>tbody>tr:not(.qt-nest-tr)", $tacon), function (i, tr) {
                 if ($(tr).hasClass("active")) {
-                    arr.push(data[i]);
+                    var id = $(tr).attr('data-row-id');
+                    if (typeof id !== 'undefined' && id !== false) {
+                        $.each(data, function (i2, d2) {
+                            if (d2.id == id) {
+                                var hasdata = function () {
+                                    var has = false;
+                                    $.each(arr, function (i3, d3) {
+                                        if (d3.id == id) {
+                                            has = true;
+                                            return false;
+                                        }
+                                    });
+                                    return has;
+                                };
+                                if (!hasdata()) {
+                                    arr.push(d2);
+                                    return false;
+                                }
+                            }
+                        });
+                    } else {
+                        arr.push(data[i]);
+                    }
                 }
             });
             return arr;
@@ -220,11 +268,12 @@
 
     //private
     var tableobject = function (data) {
-        var self = this, table,
-            $tmpl = self.$tmpl,
-            $thead = self.$tmplThead,
-            $tbody = self.$tmplTbody,
-            helper = self.options.renderhelpers;
+        var self = this, table, options = self.options,
+            detail = options.detail ? "-detail" : "",
+            $tmpl = $(options.tmpl + detail),
+            $thead = $(options.tmplThead + detail),
+            $tbody = $(options.tmplTbody + detail),
+            helper = options.renderhelpers;
 
         if (data && data.length) {
             if ($tmpl.length) {
@@ -253,7 +302,7 @@
 
     var rerendertable = function (data) {
         var self = this, nest = self.options.nest,
-            nestcheck = self.options.nestcheck, check = self.options.check,
+            check = self.options.check,
             $tacon = self.$tacon,
             $table = tableobject.call(self, data);
         $tacon.find("> table").remove().end().find("> div.alert").remove();
@@ -381,7 +430,7 @@
             tbody_th_i = tbody_th + i;
 
         var th_i = ">th.qt-check" + i;
-        
+
         var setclass = function ($i, status) { //0 空框 1 打勾 2 -号
             $i.toggleClass("fa fa-square-o fa-check-square-o fa-minus-square-o", false);
             switch (status) {
@@ -536,7 +585,8 @@
     $.fn.qtable = function (a1, a2, a3) {
         var func = function () {
             var $this = $(this), option = a1, data = $this.data('qtable'), init = !data,
-                options = $.extend(true, new QTable.prototype._options(), $.fn.qtable.defaults, $this.data(), typeof option == 'object' && option);
+                options = $.extend(true, new QTable.prototype._options(),
+                    $.fn.qtable.defaults, $this.data(), typeof option == 'object' && option);
             if (!data) $this.data('qtable', (data = new QTable(this, options)));
 
             if (init && !(options.url == "" && options.data.length == 0) &&
@@ -576,6 +626,9 @@
         data: [],
         check: true,
         nest: true,
+
+        //localStorage
+        //detail: false,//only set or get $qtable.qtable("option","detail");
     };
 
     $.fn.qtable.Constructor = QTable;
@@ -584,7 +637,7 @@
         $.fn.qtable = old;
         return this;
     };
-    
+
     $(function () {
         $.views.tags("qtnest", function (array) {
             if (array && array.length) {
